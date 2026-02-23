@@ -1,49 +1,85 @@
-from typing import List, Dict
 import heapq
+import math
 
 
 class Solution:
-    def shortestPath(self, n: int, edges: List[List[int]], src: int) -> Dict[int, int]:
-        # Build adjacency list
-        adj = {i: [] for i in range(n)}
-        for s, d, weight in edges:
-            adj[s].append((d, weight))
+    def dijkstra(self, V, edges, src):
 
-        shortest = {}  # vertex -> shortest distance
+        # Step 1: Build adjacency list
+        adj = []
 
-        minHeap = [(0, src)]  # (distance, node)
+        # create V empty lists
+        for i in range(V):
+            adj.append([])
 
-        while minHeap:
-            w1, n1 = heapq.heappop(minHeap)
+        # fill adjacency list
+        for i in range(len(edges)):
+            u = edges[i][0]
+            v = edges[i][1]
+            w = edges[i][2]
 
-            if n1 in shortest:
+            # if directed graph → only this line
+            adj[u].append((v, w))
+
+            # if undirected graph → uncomment below
+            # adj[v].append((u, w))
+
+        # Step 2: Create empty min heap
+        minHeap = []
+
+        # Step 3: Create distance array
+        dist = []
+
+        for i in range(V):
+            dist.append(math.inf)
+
+        dist[src] = 0
+
+        # push source into heap
+        heapq.heappush(minHeap, (0, src))
+
+        # Step 4: Dijkstra
+        while len(minHeap) > 0:
+            top = heapq.heappop(minHeap)
+            dis = top[0]
+            node = top[1]
+
+            # Skip outdated entries
+            if dis > dist[node]:
                 continue
 
-            shortest[n1] = w1
+            # Traverse neighbors
+            neighbors = adj[node]
 
-            for n2, w2 in adj[n1]:
-                if n2 not in shortest:
-                    heapq.heappush(minHeap, (w1 + w2, n2))
+            for i in range(len(neighbors)):
+                adjNode = neighbors[i][0]
+                edgeWeight = neighbors[i][1]
 
-        # Mark unreachable nodes as -1
-        for i in range(n):
-            if i not in shortest:
-                shortest[i] = -1
+                if dis + edgeWeight < dist[adjNode]:
+                    dist[adjNode] = dis + edgeWeight
+                    heapq.heappush(minHeap, (dist[adjNode], adjNode))
 
-        return shortest
+        return dist
 
 
 def main():
-    n = 5
+
+    V = 5
+
     edges = [[0, 1, 2], [0, 2, 4], [1, 2, 1], [1, 3, 7], [2, 4, 3], [3, 4, 1]]
+
     src = 0
 
     sol = Solution()
-    result = sol.shortestPath(n, edges, src)
+    result = sol.dijkstra(V, edges, src)
 
-    print("Shortest distances from source:", src)
-    for node in sorted(result.keys()):
-        print(f"Node {node} -> {result[node]}")
+    print("Shortest distances from source", src)
+
+    for i in range(V):
+        if result[i] == math.inf:
+            print("Node", i, "-> INF")
+        else:
+            print("Node", i, "->", result[i])
 
 
 if __name__ == "__main__":
